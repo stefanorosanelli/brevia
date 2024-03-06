@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from brevia.routers.app_routers import add_routers
 from brevia.utilities.openapi import metadata
+from brevia.utilities.exceptions import register_exception_handler
 
 
 meta = metadata(f'{Path(__file__).parent}/pyproject.toml')
@@ -16,6 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 add_routers(app)
+register_exception_handler(app)
 
 
 if __name__ == '__main__':
