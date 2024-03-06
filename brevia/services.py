@@ -1,8 +1,9 @@
 """Base service and some basic implementations"""
 from abc import ABC, abstractmethod
 from os import unlink
-from langchain.callbacks import get_openai_callback
-from brevia import load_file, analysis
+from brevia.callback import token_usage_callback
+from brevia.load_file import read
+from brevia.analysis import summarize
 
 
 class BaseService(ABC):
@@ -28,8 +29,8 @@ class SummarizeTextService(BaseService):
     def execute(self, payload: dict):
         """Service logic"""
         token_data = payload.pop('token_data')
-        with get_openai_callback() as callb:
-            result = analysis.summarize(**payload)
+        with token_usage_callback() as callb:
+            result = summarize(**payload)
 
         return {
             'output': result,
@@ -73,15 +74,15 @@ class SummarizeFileService(BaseService):
         File is removed after summarization.
         """
         try:
-            text = load_file.read(file_path=file_path)
+            text = read(file_path=file_path)
         finally:
             unlink(file_path)  # Delete the temp file
 
         if not text:
             raise ValueError('Empty text')
 
-        with get_openai_callback() as callb:
-            result = analysis.summarize(
+        with token_usage_callback() as callb:
+            result = summarize(
                 text,
                 chain_type=chain_type,
                 initial_prompt=initial_prompt,
